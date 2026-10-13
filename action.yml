@@ -1,0 +1,59 @@
+name: 'sri-sentinel'
+description: 'Check or write Subresource Integrity (SRI) hashes for scripts and stylesheets in a built site'
+author: 'Louis Wright'
+branding: { icon: 'lock', color: 'green' }
+inputs:
+  paths: { description: 'Space-separated built site directories or HTML files (default: dist)', default: 'dist' }
+  mode: { description: 'check | write', default: 'check' }
+  algorithm: { description: 'sha256 | sha384 | sha512', default: 'sha384' }
+  remote: { description: 'Fetch and hash remote CDN resources (true/false)', default: 'false' }
+  base: { description: 'Public base path, e.g. /app/', default: '' }
+  fail-on: { description: 'critical | high | medium | low | info | none', default: 'high' }
+  config: { description: 'Path to JSON config file', default: '' }
+  manifest: { description: 'Write the JSON integrity manifest to this path', default: '' }
+  sarif: { description: 'Write SARIF to this path (upload with github/codeql-action/upload-sarif)', default: '' }
+  json: { description: 'Write JSON report to this path', default: '' }
+  job-summary: { description: 'Write the Markdown report to the job summary (true/false)', default: 'true' }
+  args: { description: 'Extra CLI arguments', default: '' }
+outputs:
+  markdown-file: { description: 'Path of the Markdown report', value: '${{ steps.run.outputs.markdown-file }}' }
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      with: { node-version: '20' }
+    - id: run
+      shell: bash
+      env:
+        SS_PATHS: ${{ inputs.paths }}
+        SS_MODE: ${{ inputs.mode }}
+        SS_ALG: ${{ inputs.algorithm }}
+        SS_REMOTE: ${{ inputs.remote }}
+        SS_BASE: ${{ inputs.base }}
+        SS_FAIL_ON: ${{ inputs.fail-on }}
+        SS_CONFIG: ${{ inputs.config }}
+        SS_MANIFEST: ${{ inputs.manifest }}
+        SS_SARIF: ${{ inputs.sarif }}
+        SS_JSON: ${{ inputs.json }}
+        SS_SUMMARY: ${{ inputs.job-summary }}
+        SS_ARGS: ${{ inputs.args }}
+        SS_BIN: ${{ github.action_path }}/bin/sri-sentinel.js
+        FORCE_COLOR: '1'
+      run: |
+        md="$RUNNER_TEMP/sri-sentinel.md"
+        case "$SS_MODE" in check) args=(--check) ;; write) args=(--write) ;; *) echo "::error::mode must be check or write"; exit 2 ;; esac
+        args+=(--algorithm "$SS_ALG" --fail-on "$SS_FAIL_ON" --markdown "$md")
+        [ "$SS_REMOTE" = "true" ] && args+=(--remote)
+        [ -n "$SS_BASE" ] && args+=(--base "$SS_BASE")
+        [ -n "$SS_CONFIG" ] && args+=(--config "$SS_CONFIG")
+        [ -n "$SS_MANIFEST" ] && args+=(--manifest "$SS_MANIFEST")
+        [ -n "$SS_SARIF" ] && args+=(--sarif "$SS_SARIF")
+        [ -n "$SS_JSON" ] && args+=(--json "$SS_JSON")
+        set +e
+        # shellcheck disable=SC2086
+        node "$SS_BIN" $SS_PATHS "${args[@]}" $SS_ARGS
+        code=$?
+        set -e
+        echo "markdown-file=$md" >> "$GITHUB_OUTPUT"
+        if [ "$SS_SUMMARY" = "true" ] && [ -f "$md" ]; then cat "$md" >> "$GITHUB_STEP_SUMMARY"; fi
+        exit $code

@@ -1,24 +1,68 @@
 {
   "name": "sri-sentinel",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Subresource Integrity (SRI) generator and checker: hashes <script> and <link> resources in built HTML (sha256/384/512, local and CDN), writes integrity + crossorigin, fails CI on missing, wrong or stale hashes. JSON manifest, Vite and webpack plugins, text/JSON/SARIF/Markdown output, GitHub Action. Zero dependencies.",
   "type": "module",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "exports": {
-    ".": { "types": "./src/index.d.ts", "default": "./src/index.js" },
-    "./vite": { "types": "./src/plugins/vite.d.ts", "default": "./src/plugins/vite.js" },
-    "./webpack": { "types": "./src/plugins/webpack.d.ts", "default": "./src/plugins/webpack.js" },
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./vite": {
+      "types": "./src/plugins/vite.d.ts",
+      "default": "./src/plugins/vite.js"
+    },
+    "./webpack": {
+      "types": "./src/plugins/webpack.d.ts",
+      "default": "./src/plugins/webpack.js"
+    },
     "./package.json": "./package.json"
   },
-  "bin": { "sri-sentinel": "bin/sri-sentinel.js" },
-  "files": ["src", "bin", "action.yml", "README.md", "CHANGELOG.md", "LICENSE"],
-  "engines": { "node": ">=18" },
-  "scripts": { "test": "node --test test/*.test.js" },
-  "keywords": ["sri", "subresource-integrity", "integrity", "security", "csp", "cdn", "supply-chain-security", "hash", "sha384", "html", "vite-plugin", "webpack-plugin", "sarif", "cli", "github-action", "devsecops"],
+  "bin": {
+    "sri-sentinel": "bin/sri-sentinel.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "action.yml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "sri",
+    "subresource-integrity",
+    "integrity",
+    "security",
+    "csp",
+    "cdn",
+    "supply-chain-security",
+    "hash",
+    "sha384",
+    "html",
+    "vite-plugin",
+    "webpack-plugin",
+    "sarif",
+    "cli",
+    "github-action",
+    "devsecops"
+  ],
   "author": "Louis Wright <hello@louiswright.co.uk> (https://github.com/MrLouisWright)",
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/MrLouisWright/sri-sentinel.git" },
-  "bugs": { "url": "https://github.com/MrLouisWright/sri-sentinel/issues" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrLouisWright/sri-sentinel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MrLouisWright/sri-sentinel/issues"
+  },
   "homepage": "https://github.com/MrLouisWright/sri-sentinel#readme"
 }

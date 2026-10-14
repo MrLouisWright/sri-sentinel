@@ -1,10 +1,15 @@
 # sri-sentinel
 
+[![CI](https://github.com/MrLouisWright/sri-sentinel/actions/workflows/ci.yml/badge.svg)](https://github.com/MrLouisWright/sri-sentinel/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/sri-sentinel.svg)](https://www.npmjs.com/package/sri-sentinel)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js](https://img.shields.io/node/v/sri-sentinel.svg)](https://www.npmjs.com/package/sri-sentinel)
+
 > Subresource Integrity (SRI) hashes for your built site: generate them, write them, and fail CI when they're missing, wrong or stale.
 
-`sri-sentinel` scans the HTML in a built site directory for `<script src>` and `<link rel="stylesheet">`, `rel="modulepreload"` and `rel="preload" as="script|style"` tags. It hashes the local files (and, with `--remote`, CDN files), then either **writes** `integrity` attributes (plus `crossorigin="anonymous"` for cross-origin resources) or **checks** that the existing ones are correct. Every finding includes a file, line number, severity and a concrete fix.
+`sri-sentinel` scans the HTML in a built site directory for `<script src>`, `<link rel="stylesheet">`, `rel="modulepreload"`, `rel="preload" as="script|style"`, and **`integrity` entries inside `<script type="importmap">`**. It hashes the local files (and, with `--remote`, CDN files), then either **writes** `integrity` attributes (plus `crossorigin="anonymous"` for cross-origin resources) or **checks** that the existing ones are correct. Every finding includes a file, line number, severity and a concrete fix.
 
-CLI, library, Vite plugin, webpack plugin and GitHub Action. Node.js 18+, **zero runtime dependencies**.
+CLI, library, Vite / webpack / Rollup / esbuild / Astro integrations, and GitHub Action. Node.js 18+, **zero runtime dependencies**.
 
 ## Install and run
 
@@ -36,12 +41,33 @@ After `--write --remote`:
 <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.3/dist/htmx.min.js" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
 ```
 
+## Lazy / runtime chunks (webpack)
+
+The webpack plugin patches the webpack 5 **runtime** after emit so **code-split chunks** loaded via `import()` get an `integrity` attribute on the injected `<script>` tag (similar to [webpack-subresource-integrity](https://github.com/waysact/webpack-subresource-integrity)). Top-level scripts in HTML are still updated by the HTML scan.
+
+Set `output.crossOriginLoading: 'anonymous'` (required for cross-origin SRI). Disable runtime patching with `{ runtime: false }`.
+
+## Import maps
+
+For `<script type="importmap">`, `sri-sentinel --write` fills the top-level `"integrity"` object with digests for URLs referenced in `imports` / `scopes`:
+
+```html
+<script type="importmap">
+{
+  "imports": { "app": "/assets/app.js" },
+  "integrity": {
+    "/assets/app.js": "sha384-…"
+  }
+}
+</script>
+```
+
 ## Rules
 
 | Rule | Severity | What it catches |
 |---|---|---|
 | `integrity-mismatch` | critical | The integrity value doesn't match the file: wrong, or stale after a rebuild |
-| `missing-integrity` | high | A script or stylesheet with no `integrity` |
+| `missing-integrity` | high | A script, stylesheet, modulepreload, or import map entry with no integrity |
 | `invalid-integrity` | high | Malformed value, wrong digest length or unsupported algorithm (`sha1-`, `md5-`) |
 | `missing-crossorigin` | high | Cross-origin resource with `integrity` but no `crossorigin`. The browser will block it |
 | `unresolved-resource` | medium | Local file not found or outside the site root, so it can't be hashed |
@@ -137,10 +163,43 @@ Runs after the bundle is written (`closeBundle`), rewrites every HTML file in `b
 ```js
 // webpack.config.js
 import { SriSentinelPlugin } from 'sri-sentinel/webpack';
-export default { plugins: [new HtmlWebpackPlugin(), new SriSentinelPlugin({ algorithm: 'sha384' })] };
+export default {
+  output: { crossOriginLoading: 'anonymous' },
+  plugins: [new HtmlWebpackPlugin(), new SriSentinelPlugin({ algorithm: 'sha384' })],
+};
 ```
 
-Runs on `afterEmit` over `output.path` and uses `output.publicPath` when it's an absolute path. Remaining problems are added to `compilation.errors`.
+After emit: patches the **runtime** for lazy-chunk SRI, then rewrites HTML in `output.path`. Uses `output.publicPath` when it's an absolute path. Set `{ runtime: false }` to skip runtime patching. Remaining problems are added to `compilation.errors`.
+
+## Rollup
+
+```js
+import sri from 'sri-sentinel/rollup';
+export default { plugins: [sri({ manifest: 'sri.json' })] };
+```
+
+Runs on `writeBundle` over the output directory.
+
+## esbuild
+
+```js
+import { sriSentinelEsbuild } from 'sri-sentinel/esbuild';
+export default {
+  plugins: [sriSentinelEsbuild({ failOn: 'high' })],
+};
+```
+
+Runs on successful `onEnd` when `outdir` is set.
+
+## Astro
+
+```js
+// astro.config.mjs
+import sri from 'sri-sentinel/astro';
+export default { integrations: [sri({ remote: true })] };
+```
+
+Runs on `astro:build:done` over the build output directory.
 
 ## GitHub Action
 
@@ -158,16 +217,26 @@ Inputs: `paths`, `mode`, `algorithm`, `remote`, `base`, `fail-on`, `config`, `ma
 
 ## Library
 
+**ESM**
+
 ```js
 import { scan, computeIntegrity, verifyIntegrity, formatSarif, exitCode } from 'sri-sentinel';
+```
 
+**CommonJS**
+
+```js
+const { scan, computeIntegrity } = require('sri-sentinel');
+```
+
+```js
 const result = await scan({ paths: ['dist'], write: true, remote: true, config: { algorithm: 'sha512' } });
 console.log(result.manifest, result.findings);
 computeIntegrity('console.log(1)');             // 'sha384-…'
 verifyIntegrity(buffer, 'sha384-… sha512-…');   // { valid, ok, algorithm }
 ```
 
-TypeScript types are included.
+TypeScript declarations are generated from source (`npm run build`). This package does **not** generate CSP headers or inline script hashes (use a dedicated CSP tool for that).
 
 ## License
 

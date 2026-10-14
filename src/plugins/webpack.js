@@ -1,23 +1,23 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { scan } from '../scan.js';
-import { exitCode, formatText } from '../format.js';
+import { patchWebpackCompilationRuntime } from '../webpack-runtime.js';
+import { runPostBuildSri } from './shared.js';
 
 /**
- * webpack 5 plugin: after assets are emitted, add integrity (and crossorigin) attributes to every
- * HTML file in output.path (e.g. produced by html-webpack-plugin).
+ * webpack 5 plugin: patch lazy-chunk loading with SRI, then rewrite HTML in output.path.
  */
 export class SriSentinelPlugin {
+  /** @param {{ failOn?: string, manifest?: string, remote?: boolean, runtime?: boolean } & import('../config.js').Config} [options] */
   constructor(options = {}) { this.options = options; }
   apply(compiler) {
     compiler.hooks.afterEmit.tapPromise('SriSentinelPlugin', async (compilation) => {
-      const { failOn = 'high', manifest, remote, ...config } = this.options;
+      const { failOn = 'high', manifest, remote, runtime = true, ...config } = this.options;
       const outDir = compilation.outputOptions.path;
       const pub = compilation.outputOptions.publicPath;
       if (!config.base && typeof pub === 'string' && pub.startsWith('/')) config.base = pub;
-      const res = await scan({ paths: [outDir], cwd: compiler.context, write: true, remote, config });
-      if (manifest) fs.writeFileSync(path.resolve(outDir, manifest), JSON.stringify(res.manifest, null, 2) + '\n');
-      if (exitCode(res, failOn)) compilation.errors.push(new Error('sri-sentinel found unresolved SRI problems:\n' + formatText(res)));
+      if (runtime !== false) {
+        patchWebpackCompilationRuntime(compilation, { algorithm: config.algorithm || 'sha384' });
+      }
+      const { res, message } = await runPostBuildSri({ paths: [outDir], cwd: compiler.context, options: { failOn, manifest, remote, ...config } });
+      if (message) compilation.errors.push(new Error(message));
     });
   }
 }

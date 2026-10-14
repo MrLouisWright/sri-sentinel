@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-10-14
+
+### Added
+- **Lazy / runtime chunks (webpack):** `SriSentinelPlugin` patches the webpack 5 runtime after emit so dynamically loaded chunks get `integrity` (and existing `crossOriginLoading`) on injected `<script>` tags, using a per-chunk `sriHashes` map. Disable with `{ runtime: false }`.
+- **Import maps:** `--write` / scan updates the top-level `integrity` object in `<script type="importmap">` JSON for mapped module URLs; checks report missing or stale entries.
+- **Bundler integrations:** `sri-sentinel/rollup`, `sri-sentinel/esbuild`, and `sri-sentinel/astro` post-build plugins (same HTML/import-map behaviour as Vite).
+- **Dual package:** ESM (`.mjs`) and CommonJS (`.cjs`) builds via `package.json` `exports`; TypeScript declarations are generated from JSDoc-annotated source (`npm run build`).
+
+### Changed
+- Webpack, Vite, and shared plugin helpers consolidated; manifest writing shared across integrations.
+- CI runs `npm run build`, tests `require()` and `import()` against published export paths, and dogfoods the built CLI.
+
 ## [1.0.0] - 2026-10-13
 
 ### Added

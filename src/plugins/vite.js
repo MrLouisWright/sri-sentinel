@@ -1,6 +1,5 @@
 import path from 'node:path';
-import { scan } from '../scan.js';
-import { exitCode, formatText } from '../format.js';
+import { runPostBuildSri } from './shared.js';
 
 /**
  * Vite plugin: after the build is written, add integrity (and crossorigin) attributes to every
@@ -15,12 +14,12 @@ export default function sriSentinel(options = {}) {
     enforce: 'post',
     configResolved(c) { root = c.root; outDir = path.resolve(c.root, c.build.outDir); base = c.base; },
     async closeBundle() {
-      const { failOn = 'high', manifest, silent, remote, ...config } = options;
-      if (!config.base && base && base.startsWith('/')) config.base = base;
-      const res = await scan({ paths: [outDir], cwd: root, write: true, remote, config });
-      if (manifest) { const fs = await import('node:fs'); fs.writeFileSync(path.resolve(outDir, manifest), JSON.stringify(res.manifest, null, 2) + '\n'); }
+      const { silent, ...rest } = options;
+      const cfg = { ...rest };
+      if (!cfg.base && base && base.startsWith('/')) cfg.base = base;
+      const { res, message } = await runPostBuildSri({ paths: [outDir], cwd: root, options: cfg });
       if (!silent) this.info?.(`sri-sentinel: ${res.resources.length} resource(s), ${res.written.length} HTML file(s) updated`);
-      if (exitCode(res, failOn)) throw new Error('sri-sentinel found unresolved SRI problems:\n' + formatText(res));
+      if (message) throw new Error(message);
     },
   };
 }

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sri-sentinel · Subresource Integrity for your built site: generate, write and check it in CI.</title>
+<meta name="description" content="Subresource Integrity for your built site: generate, write and check it in CI. Scans the HTML in your build for scripts, stylesheets, modulepreload / preload links and import map entries, hashes the local files (and CDN files with --remote), then either writes integrity and crossorigin attributes or">
+<meta name="theme-color" content="#07090c">
+<link rel="canonical" href="https://mrlouiswright.github.io/sri-sentinel/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="sri-sentinel: Subresource Integrity for your built site: generate, write and check it in CI.">
+<meta property="og:description" content="Subresource Integrity for your built site: generate, write and check it in CI. Scans the HTML in your build for scripts, stylesheets, modulepreload / preload links and import map entries, hashes the local files (and CDN files with --remote), then either writes integrity and crossorigin attributes or">
+<meta property="og:url" content="https://mrlouiswright.github.io/sri-sentinel/">
+<meta property="og:image" content="https://mrlouiswright.github.io/sri-sentinel/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="sri-sentinel: Subresource Integrity for your built site: generate, write and check it in CI.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="sri-sentinel">
+<meta name="twitter:description" content="Subresource Integrity for your built site: generate, write and check it in CI.">
+<meta name="twitter:image" content="https://mrlouiswright.github.io/sri-sentinel/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="style.css">
+<style>:root{--accent:#34d399;--accent-2:#047857}</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="./"><span class="brand-g" aria-hidden="true">I</span>sri-sentinel</a>
+    <nav aria-label="Primary"><ul>
+      <li><a href="#features">Features</a></li><li><a href="#usage">Usage</a></li><li><a href="#ci">CI</a></li><li><a href="#options">Options</a></li>
+      <li><a class="gh" href="https://github.com/MrLouisWright/sri-sentinel">GitHub</a></li>
+    </ul></nav>
+  </div>
+</header>
+<main id="main">
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="dot" aria-hidden="true"></span> npm package · MIT · Node ≥ 18</p>
+      <h1>sri-sentinel</h1>
+      <p class="tagline">Subresource Integrity for your built site: generate, write and check it in CI.</p>
+      <p class="lede">Scans the HTML in your build for scripts, stylesheets, modulepreload / preload links and import map entries, hashes the local files (and CDN files with --remote), then either writes integrity and crossorigin attributes or checks the existing ones are correct. Vite, webpack, Rollup, esbuild and Astro integrations. Zero runtime dependencies.</p>
+      <div class="install">
+        <code id="install-cmd"><span class="prompt" aria-hidden="true">$</span> npm i -D sri-sentinel</code>
+        <button class="copy" type="button" data-copy="npm i -D sri-sentinel" aria-label="Copy install command">Copy</button>
+        <span class="sr-only" role="status" aria-live="polite" id="copy-status"></span>
+      </div>
+      <div class="ctas">
+        <a class="btn primary" href="https://github.com/MrLouisWright/sri-sentinel#readme">Read the docs</a>
+        <a class="btn" href="https://www.npmjs.com/package/sri-sentinel">View on npm</a>
+        <a class="btn" href="https://github.com/MrLouisWright/sri-sentinel">Source on GitHub</a>
+      </div>
+      <div class="badges">
+        <a href="https://www.npmjs.com/package/sri-sentinel"><img src="https://img.shields.io/npm/v/sri-sentinel.svg?style=flat-square&amp;color=111" alt="npm version of sri-sentinel" height="20"></a>
+        <a href="https://github.com/MrLouisWright/sri-sentinel/actions/workflows/ci.yml"><img src="https://github.com/MrLouisWright/sri-sentinel/actions/workflows/ci.yml/badge.svg" alt="CI status" height="20"></a>
+        <a href="https://github.com/MrLouisWright/sri-sentinel/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License: MIT" height="20"></a>
+        <a href="https://github.com/MrLouisWright/sri-sentinel"><img src="https://img.shields.io/github/stars/MrLouisWright/sri-sentinel?style=flat-square" alt="GitHub stars for sri-sentinel" height="20"></a>
+      </div>
+    </div>
+    <figure class="term" aria-label="Example terminal session running sri-sentinel">
+      <div class="term-bar"><span></span><span></span><span></span><em>~/project — zsh</em></div>
+      <pre class="term-body" data-cmd="npx sri-sentinel dist --check"><span class="ln cmd"><span class="prompt">$</span> <span class="typed">npx sri-sentinel dist --check</span><span class="caret" aria-hidden="true"></span></span><span class="out"><span class="ln b">dist/index.html</span><span class="ln e">     4: high     &lt;link&gt; &quot;/assets/app.css?v=42&quot; has no integrity attribute [missing-integrity]</span><span class="ln f">        ↳ Add integrity=&quot;sha384-IBXuE+SKr6nOANxq1LIznMbjQUHDJ3PY6mUpF3ZQCTz1+rK8Fip9GAGqRq59yH3C&quot;</span><span class="ln e">     5: high     &lt;script&gt; &quot;https://cdn.jsdelivr.net/npm/htmx.org@2.0.3/dist/htmx.min.js&quot; has no integrity attribute [missing-integrity]</span><span class="ln f">        ↳ Run with --remote to fetch and hash it, then --write</span><span class="ln e">     6: critical Integrity for &quot;./assets/app.js&quot; does not match its content (wrong or stale) [integrity-mismatch]</span><span class="ln w">     7: medium   Could not resolve &quot;/assets/vendor.js&quot; (file not found: dist/assets/vendor.js) [unresolved-resource]</span><span class="ln f">        ↳ Check the path and --base, or allowlist it</span><span class="ln dim">&nbsp;</span><span class="ln b">1 HTML file(s), 4 resource(s): 1 critical, 2 high, 1 medium</span></span></pre>
+      <figcaption class="sr-only">Sample output adapted from the sri-sentinel README.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="sec" id="problem">
+  <div class="wrap narrow">
+    <h2><span class="h-idx">01</span> The problem</h2>
+    <p class="big">If a CDN or asset host is compromised, anything you load from it runs with full access to your page. Subresource Integrity stops that, but hand-maintained hashes go stale on every rebuild and a single missing crossorigin attribute makes the browser block the file.</p>
+    <p class="big">sri-sentinel writes the hashes for you after each build and fails CI when one is missing, wrong or stale.</p>
+  </div>
+</section>
+
+<section class="sec" id="features">
+  <div class="wrap">
+    <h2><span class="h-idx">02</span> Features</h2>
+    <div class="grid">
+      <article class="card"><span class="card-i" aria-hidden="true">01</span><h3>Write or check</h3><p>--write adds integrity (and crossorigin) attributes; --check fails on missing, wrong or stale values.</p></article>
+      <article class="card"><span class="card-i" aria-hidden="true">02</span><h3>CDN resources</h3><p>--remote fetches and hashes cross-origin files too.</p></article>
+      <article class="card"><span class="card-i" aria-hidden="true">03</span><h3>Import maps</h3><p>Fills the integrity object inside &lt;script type="importmap"&gt;.</p></article>
+      <article class="card"><span class="card-i" aria-hidden="true">04</span><h3>Lazy chunks</h3><p>The webpack plugin patches the webpack 5 runtime so import() chunks get integrity too.</p></article>
+      <article class="card"><span class="card-i" aria-hidden="true">05</span><h3>Browser-accurate checks</h3><p>Only the strongest algorithm counts, any hash of it may match; base64url and ?options accepted.</p></article>
+      <article class="card"><span class="card-i" aria-hidden="true">06</span><h3>Build integrations</h3><p>Vite, webpack, Rollup, esbuild and Astro.</p></article>
+      <article class="card"><span class="card-i" aria-hidden="true">07</span><h3>Allowlists that expire</h3><p>Per-rule or per-URL exemptions with a reason and an expiry date.</p></article>
+      <article class="card"><span class="card-i" aria-hidden="true">08</span><h3>Manifests &amp; reports</h3><p>JSON manifest of resource → integrity; text, JSON, SARIF and Markdown reports.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="usage">
+  <div class="wrap">
+    <h2><span class="h-idx">03</span> Usage</h2>
+    <div class="usage">
+      <div class="u"><p class="u-t"># Add integrity attributes</p><pre><code><span class="prompt" aria-hidden="true">$</span> npx sri-sentinel dist --write</code></pre></div>
+      <div class="u"><p class="u-t"># Fail CI on bad integrity</p><pre><code><span class="prompt" aria-hidden="true">$</span> npx sri-sentinel dist --check</code></pre></div>
+      <div class="u"><p class="u-t"># Include CDN resources</p><pre><code><span class="prompt" aria-hidden="true">$</span> npx sri-sentinel dist --write --remote</code></pre></div>
+      <div class="u"><p class="u-t"># Write a manifest</p><pre><code><span class="prompt" aria-hidden="true">$</span> npx sri-sentinel dist --manifest sri.json</code></pre></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="sec" id="ci">
+  <div class="wrap">
+    <h2><span class="h-idx">04</span> CI / GitHub Action</h2>
+    <pre class="code yaml"><code>name: SRI
+on: [push, pull_request]
+jobs:
+  sri:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci &amp;&amp; npm run build
+      - uses: MrLouisWright/sri-sentinel@v1
+        with:
+          paths: dist
+          mode: check          # or write
+          remote: 'true'
+          fail-on: high
+          sarif: sri.sarif</code></pre>
+  </div>
+</section>
+
+<section class="sec" id="options">
+  <div class="wrap">
+    <h2><span class="h-idx">05</span> Options &amp; flags</h2>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th scope="col">Flag</th><th scope="col">Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>--check</code></td><td>Report missing, wrong or stale integrity (default)</td></tr>
+        <tr><td><code>--write</code></td><td>Write integrity (and crossorigin) attributes into the HTML</td></tr>
+        <tr><td><code>-a, --algorithm &lt;alg&gt;</code></td><td>sha256 | sha384 | sha512 (default: sha384)</td></tr>
+        <tr><td><code>--remote</code></td><td>Fetch and hash remote (CDN) resources</td></tr>
+        <tr><td><code>--base &lt;path&gt;</code></td><td>Public base path, e.g. /app/ (default: /)</td></tr>
+        <tr><td><code>--origin &lt;url&gt;</code></td><td>Site origin; absolute URLs on it are treated as local files</td></tr>
+        <tr><td><code>--crossorigin &lt;v&gt;</code></td><td>anonymous | use-credentials (default: anonymous)</td></tr>
+        <tr><td><code>--manifest &lt;file&gt;</code></td><td>Write a JSON manifest of resource -&gt; integrity</td></tr>
+        <tr><td><code>--config &lt;file&gt;</code></td><td>Config file (default: .sri-sentinel.json or package.json &quot;sri-sentinel&quot;)</td></tr>
+        <tr><td><code>--fail-on &lt;sev&gt;</code></td><td>critical | high | medium | low | info | none (default: high)</td></tr>
+        <tr><td><code>--format &lt;fmt&gt;</code></td><td>text | json | sarif | markdown (default: text)</td></tr>
+        <tr><td><code>--json/--sarif/--markdown &lt;file&gt;</code></td><td>Also write that report to a file</td></tr>
+        <tr><td><code>--timeout &lt;ms&gt;</code></td><td>Remote fetch timeout (default: 10000)</td></tr>
+        <tr><td><code>-q, --quiet</code></td><td>Only print the summary</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Full reference, config file format and API in the <a href="https://github.com/MrLouisWright/sri-sentinel#readme">README</a>.</p>
+  </div>
+</section>
+
+<section class="sec more" id="more">
+  <div class="wrap">
+    <h2><span class="h-idx">06</span> More tools by Louis Wright</h2>
+    <div class="tools">
+<a class="tool" href="https://mrlouiswright.github.io/bundle-secret-guard/" style="--a:#f43f5e"><span class="tool-g" aria-hidden="true">S</span><span><strong>bundle-secret-guard</strong><small>Fail the build when secrets ship to the browser.</small></span></a>
+<a class="tool" href="https://mrlouiswright.github.io/cookie-sentinel/" style="--a:#fbbf24"><span class="tool-g" aria-hidden="true">K</span><span><strong>cookie-sentinel</strong><small>Audit the cookies your site sets before attackers do.</small></span></a>
+<a class="tool" href="https://mrlouiswright.github.io/csp-forge/" style="--a:#f59e0b"><span class="tool-g" aria-hidden="true">C</span><span><strong>csp-forge</strong><small>Generate a tight Content-Security-Policy from your built site.</small></span></a>
+<a class="tool" href="https://mrlouiswright.github.io/form-honeypot-guard/" style="--a:#a3e635"><span class="tool-g" aria-hidden="true">F</span><span><strong>form-honeypot-guard</strong><small>Block form spam bots without a captcha.</small></span></a>
+<a class="tool" href="https://mrlouiswright.github.io/header-sentinel/" style="--a:#22d3ee"><span class="tool-g" aria-hidden="true">H</span><span><strong>header-sentinel</strong><small>Fail CI when deployed URLs ship weak HTTP security headers.</small></span></a>
+<a class="tool" href="https://mrlouiswright.github.io/license-sentinel/" style="--a:#60a5fa"><span class="tool-g" aria-hidden="true">⚖</span><span><strong>license-sentinel</strong><small>A license compliance gate for npm projects, plus CycloneDX/SPDX SBOMs and a NOTICES file.</small></span></a>
+<a class="tool" href="https://mrlouiswright.github.io/package-tripwire/" style="--a:#fb923c"><span class="tool-g" aria-hidden="true">P</span><span><strong>package-tripwire</strong><small>Fail CI when dependency changes look suspicious.</small></span></a>
+<a class="tool" href="https://mrlouiswright.github.io/static-link-sentinel/" style="--a:#a78bfa"><span class="tool-g" aria-hidden="true">L</span><span><strong>static-link-sentinel</strong><small>Fail CI on broken links before you deploy.</small></span></a>
+<a class="tool" href="https://mrlouiswright.github.io/workflow-sentinel/" style="--a:#2dd4bf"><span class="tool-g" aria-hidden="true">W</span><span><strong>workflow-sentinel</strong><small>Catch insecure GitHub Actions workflows before they're merged.</small></span></a>
+    </div>
+  </div>
+</section>
+</main>
+<footer class="foot">
+  <div class="wrap foot-in">
+    <p>MIT © <a href="https://github.com/MrLouisWright">Louis Wright</a></p>
+    <p><a href="https://github.com/MrLouisWright/sri-sentinel">GitHub</a> · <a href="https://www.npmjs.com/package/sri-sentinel">npm</a> · <a href="https://github.com/MrLouisWright/sri-sentinel#readme">README</a></p>
+  </div>
+</footer>
+<script src="app.js" defer></script>
+</body>
+</html>

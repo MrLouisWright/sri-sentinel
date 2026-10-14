@@ -118,7 +118,7 @@
   "bugs": {
     "url": "https://github.com/MrLouisWright/sri-sentinel/issues"
   },
-  "homepage": "https://github.com/MrLouisWright/sri-sentinel#readme",
+  "homepage": "https://mrlouiswright.github.io/sri-sentinel/",
   "devDependencies": {
     "@types/node": "^22.13.10",
     "esbuild": "^0.25.0",

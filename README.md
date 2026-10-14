@@ -238,6 +238,10 @@ verifyIntegrity(buffer, 'sha384-… sha512-…');   // { valid, ok, algorithm }
 
 TypeScript declarations are generated from source (`npm run build`). This package does **not** generate CSP headers or inline script hashes (use a dedicated CSP tool for that).
 
+## Support
+
+If this project is useful to you, you can support its development with a donation: [Buy me a coffee](https://donate.stripe.com/aFa00lek3cvX4Ds2Fk9EI0b). It helps keep these tools maintained, documented and free for everyone.
+
 ## License
 
-MIT © Louis Wright
+MIT © Louis Wright ([Louis Wright](https://github.com/MrLouisWright))

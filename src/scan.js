@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { findTags, lineOf, setAttrs } from './html.js';
+import { findImportMapBlocks, importMapUrls, applyImportMapIntegrity } from './importmap.js';
 import { computeIntegrity, verifyIntegrity, strength } from './hash.js';
 import { loadConfig, validate, allowEntries, isAllowed, globRe, norm } from './config.js';
 import { RULES } from './rules.js';
@@ -178,9 +179,44 @@ export async function scan(opts = {}) {
       if (res.crossOrigin && !hasCO && (current || set.integrity)) set.crossorigin = config.crossorigin;
       if (write && Object.keys(set).length) edits.push({ tag, text: setAttrs(tag, set) });
     }
-    if (write && edits.length) {
+    /** @type {{ start: number, end: number, text: string }[]} */
+    const importMapEdits = [];
+    for (const block of findImportMapBlocks(html)) {
+      const line = lineOf(html, block.tag.start);
+      if (!block.parsed) {
+        findings.push({ rule: 'invalid-integrity', severity: config.rules['invalid-integrity'] || RULES['invalid-integrity'].severity, file: relFile, line, url: '(importmap)', message: 'Import map JSON is invalid', fix: 'Fix the JSON inside <script type="importmap">' });
+        continue;
+      }
+      const urls = importMapUrls(block.parsed);
+      /** @type {Record<string, string>} */
+      const urlToIntegrity = {};
+      for (const ref of urls) {
+        const res = resolveRef(ref, file, root, config);
+        if (res.kind === 'inline' || res.kind === 'unsupported' || res.kind === 'dynamic') continue;
+        const url = res.key || ref;
+        const content = res.kind === 'local' || remote ? await getContent(res) : null;
+        const expected = content && content.buf ? computeIntegrity(content.buf, config.algorithm) : null;
+        if (expected) {
+          urlToIntegrity[ref] = expected;
+          manifest[url] = { integrity: expected, ...(res.kind === 'local' ? { file: norm(path.relative(cwd, res.file)) } : {}), crossOrigin: res.crossOrigin };
+          const integrityMap = block.parsed.integrity && typeof block.parsed.integrity === 'object' ? block.parsed.integrity : {};
+          const current = integrityMap[ref];
+          if (!current && expected) {
+            findings.push({ rule: 'missing-integrity', severity: config.rules['missing-integrity'] || RULES['missing-integrity'].severity, file: relFile, line, url: ref, message: `Import map has no integrity entry for "${ref}"`, fix: `Add "${ref}": "${expected}" to the import map integrity field`, expected, fixable: true });
+          } else if (current && expected) {
+            const v = verifyIntegrity(content.buf, current);
+            if (v.valid && !v.ok) findings.push({ rule: 'integrity-mismatch', severity: config.rules['integrity-mismatch'] || RULES['integrity-mismatch'].severity, file: relFile, line, url: ref, message: `Import map integrity for "${ref}" does not match its content`, fix: `Set "${ref}": "${expected}"`, expected, actual: current, fixable: true });
+          }
+        }
+      }
+      const updated = applyImportMapIntegrity(JSON.parse(JSON.stringify(block.parsed)), urlToIntegrity);
+      const newBody = JSON.stringify(updated, null, 2);
+      if (write && newBody !== block.json) importMapEdits.push({ start: block.bodyStart, end: block.bodyEnd, text: newBody });
+    }
+    if (write && (edits.length || importMapEdits.length)) {
       let out = html;
       for (const e of edits.sort((a, b) => b.tag.start - a.tag.start)) out = out.slice(0, e.tag.start) + e.text + out.slice(e.tag.end);
+      for (const e of importMapEdits.sort((a, b) => b.start - a.start)) out = out.slice(0, e.start) + e.text + out.slice(e.end);
       fs.writeFileSync(file, out);
       written.push(relFile);
     }

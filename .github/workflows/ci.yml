@@ -13,11 +13,12 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with: { node-version: '${{ matrix.node }}' }
       - run: npm ci --ignore-scripts
+      - run: npm run build
       - run: npm test
       - run: npm pack --dry-run
       - name: Dogfood
         run: |
           mkdir -p /tmp/site && echo 'console.log(1)' > /tmp/site/app.js
           echo '<script src="/app.js"></script>' > /tmp/site/index.html
-          node bin/sri-sentinel.js /tmp/site --write
-          node bin/sri-sentinel.js /tmp/site --check --fail-on low
+          node dist/cli.cjs /tmp/site --write
+          node dist/cli.cjs /tmp/site --check --fail-on low

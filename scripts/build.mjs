@@ -28,7 +28,16 @@ for (const [entry, out] of entries) {
       format: format === 'esm' ? 'esm' : 'cjs',
       target: 'node18',
       sourcemap: true,
-      banner: entry.endsWith('cli.js') && format === 'cjs' ? { js: '#!/usr/bin/env node' } : undefined,
+      // CommonJS has no import.meta.url; point it at this file so createRequire() works.
+      define: format === 'cjs' ? { 'import.meta.url': '__importMetaUrl' } : undefined,
+      banner:
+        format === 'cjs'
+          ? {
+              js:
+                (entry.endsWith('cli.js') ? '#!/usr/bin/env node\n' : '') +
+                "const __importMetaUrl = require('node:url').pathToFileURL(__filename).href;",
+            }
+          : undefined,
     });
   }
 }

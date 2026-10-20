@@ -1,6 +1,6 @@
 {
   "name": "sri-sentinel",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Subresource Integrity (SRI) generator and checker: hashes <script> and <link> resources in built HTML (sha256/384/512, local and CDN), import maps, lazy webpack chunks, writes integrity + crossorigin, fails CI on missing, wrong or stale hashes. JSON manifest, Vite/webpack/Rollup/esbuild/Astro plugins, text/JSON/SARIF/Markdown output, GitHub Action. Zero dependencies.",
   "type": "module",
   "main": "./dist/index.cjs",

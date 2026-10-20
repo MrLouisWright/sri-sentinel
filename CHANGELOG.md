@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/) and the project uses [Semantic Versioning](https://semver.org/).
 
-## 1.1.2 - 2026-10-20
+## 1.1.2 - 2026-10-20 (tagged, not published; superseded by 1.1.3)
 
 - Fixed: the build script and tests no longer use `import.meta.dirname`, so they run on Node 18.
 - Release workflow installs dependencies before publishing.

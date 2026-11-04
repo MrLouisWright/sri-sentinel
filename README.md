@@ -217,6 +217,12 @@ Inputs: `paths`, `mode`, `algorithm`, `remote`, `base`, `fail-on`, `config`, `ma
 
 ## Library
 
+Install it in your project first:
+
+```bash
+npm install --save-dev sri-sentinel
+```
+
 **ESM**
 
 ```js
